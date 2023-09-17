@@ -39,6 +39,10 @@ function questions() {
                 "View all departments",
                 "View all roles",
                 "View all employees",
+                "add a department",
+                "add a role",
+                "add an employee",
+                "update an employee role",
                 "Exit",
             ],
         })

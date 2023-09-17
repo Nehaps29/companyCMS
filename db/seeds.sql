@@ -1,9 +1,9 @@
-INSERT INTO department (name)
+INSERT IGNORE INTO department (name)
 VALUES ("Sales"),
        ("Engineering"),
        ("Service Delivery");
 
-INSERT INTO role (name, salary, department_id)
+INSERT IGNORE INTO role (name, salary, department_id)
 VALUES ("Sales consultant", 100, 1),
        ("Software Engineer", 200, 2),
        ("Application Engineer", 150, 3);       
