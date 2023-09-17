@@ -43,7 +43,10 @@ function questions() {
             ],
         })
         .then((answer) => {
-            console.log(answer)
+            console.log(answer);
+            if (answer.action == 'View all departments'){
+              
+            }
         });
 }
 
