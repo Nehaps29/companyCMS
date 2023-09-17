@@ -45,7 +45,12 @@ function questions() {
         .then((answer) => {
             console.log(answer);
             if (answer.action == 'View all departments'){
-              
+              const sql = `SELECT * FROM department`;
+              connection.query(sql, (err, res)=> {
+                if (err) throw err; 
+                else console.log(res);
+                questions();
+              })
             }
         });
 }
