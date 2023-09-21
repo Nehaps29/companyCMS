@@ -64,7 +64,6 @@ function questions() {
                 "View employees by manager",
                 "View employees by department",
                 "Delete departments, roles, and employees",
-                "View the total utilized budget of a department",
                 "Exit",
             ],
         })
@@ -146,17 +145,13 @@ function questions() {
                 deleteRow();
             }
 
-            if (answer.action == 'View the total utilized budget of a department'){
-                viewTotalUtilizedBudgetOfDepartment();
-            }
-
       });
 }
 
 //function to add role
 function addRole() {
-  const query = "SELECT * FROM department";
-  connection.query(query, (err, res) => {
+  const sql = "SELECT * FROM department";
+  connection.query(sql, (err, res) => {
       if (err) throw err;
       inquirer
           .prompt([
@@ -183,9 +178,9 @@ function addRole() {
               const department = res.find(
                   (department) => department.name === answers.department
               );
-              const query = "INSERT INTO role SET ?";
+              const sql = "INSERT INTO role SET ?";
               connection.query(
-                  query,
+                  sql,
                   {
                       name: answers.title,
                       salary: answers.salary,
@@ -292,10 +287,10 @@ function addEmployee() {
 
 // function to update an employee role
 function updateEmployeeRole() {
-  const queryEmployees =
+  const sql =
       "SELECT employee.id, employee.first_name, employee.last_name, role.name FROM employee LEFT JOIN role ON employee.role_id = role.id";
   const queryRoles = "SELECT * FROM role";
-  connection.query(queryEmployees, (err, resEmployees) => {
+  connection.query(sql, (err, resEmployees) => {
       if (err) throw err;
       connection.query(queryRoles, (err, resRoles) => {
           if (err) throw err;
@@ -348,10 +343,10 @@ function updateEmployeeRole() {
 // function to update manager
 function updateEmployeeManager() {
    
-    const queryEmployees = "SELECT * FROM employee";
+    const sql = "SELECT * FROM employee";
 
     
-        connection.query(queryEmployees, (err, resEmployees) => {
+        connection.query(sql, (err, resEmployees) => {
             if (err) throw err;
             inquirer
                 .prompt([
@@ -409,7 +404,7 @@ function updateEmployeeManager() {
 
 // Function to View Employee By Manager
 function  viewEmployeeByManager() {
-    const query = `
+    const sql = `
       SELECT 
         e.id, 
         e.first_name, 
@@ -426,7 +421,7 @@ function  viewEmployeeByManager() {
         e.first_name
     `;
 
-    connection.query(query, (err, res) => {
+    connection.query(sql, (err, res) => {
         console.log(res);
         if (err) throw err;
 
@@ -595,52 +590,6 @@ function deleteDepartment() {
     });
 }
 
-// Function to view Total Utilized Budget of Department
-function viewTotalUtilizedBudgetOfDepartment() {
-    console.log("inside the function");
-    const query = "SELECT * FROM department";
-    connection.query(query, (err, res) => {
-        if (err) throw err;
-        const departmentChoices = res.map((department) => ({
-            name: department.name,
-            value: department.id,
-        }));
-
-        // prompt the user to select a department
-        inquirer
-            .prompt({
-                type: "list",
-                name: "departmentId",
-                message:
-                    "Which department do you want to calculate the total salary for?",
-                choices: departmentChoices,
-            })
-            .then((answer) => {
-                // calculate the total salary for the selected department
-                const query =
-                    `SELECT 
-                    department.name AS \`Department Name\`,
-                    SUM(role.salary) AS \`Total_Salary\`
-                  FROM 
-                    department
-                    INNER JOIN role ON department.id = role.department_id
-                    INNER JOIN employee ON role.id = employee.role_id
-                  WHERE 
-                    department.id = ?
-                  GROUP BY 
-                    department.id;`;
-                connection.query(query, [answer.departmentId], (err, res) => {
-                    if (err) throw err;
-                    const totalSalary = res[0].Total_Salary;
-                    console.log(
-                        `The total salary for employees in this department is $${totalSalary}`
-                    );
-                    // ask questions again
-                    questions();
-                });
-            });
-    });
-}
 
 // close the connection when the application exits
 process.on("exit", () => {

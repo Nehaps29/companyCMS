@@ -7,10 +7,10 @@
   https://github.com/Nehaps29/companyCMS
 
   ## Short Video Link showing how it is generated: 
-  https://drive.google.com/file/d/1tu6yjfIAuVxgmFvIlhdK3qtL97yTU4Wg/view
-  
 
-  ## Picture of generate logo
+  https://drive.google.com/file/d/1kBswiE4qUCoa0Jez4pOxkAOk-0Wvo_5R/view
+
+  ## Picture of App
   
   ![Result image](picq.JPG)
 
