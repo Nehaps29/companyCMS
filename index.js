@@ -1,6 +1,7 @@
 require('dotenv').config();
 const inquirer = require("inquirer");
 const password = process.env.PASSWORD;
+const cfonts = require('cfonts');
 
 // Import and require mysql2
 const mysql = require('mysql2');
@@ -28,6 +29,22 @@ const connection = mysql.createConnection(
     questions();
     
   })
+// Adding style
+  cfonts.say('Employee Tracker', {
+	font: 'simple',              // define the font face
+	align: 'left',              // define text alignment
+	colors: ['green'],         // define all colors
+	background: 'transparent',  // define the background color, you can also use `backgroundColor` here as key
+	letterSpacing: 1,           // define letter spacing
+	lineHeight: 1,              // define the line height
+	space: true,                // define if the output text should have empty lines on top and on the bottom
+	maxLength: '0',             // define how many character can be on one line
+	gradient: false,            // define your two gradient colors
+	independentGradient: false, // define if you want to recalculate the gradient for each new line
+	transitionGradient: false,  // define if this is a transition between colors directly
+	env: 'node'                 // define the environment cfonts is being executed in
+});
+
 
 function questions() {
   inquirer
@@ -44,20 +61,20 @@ function questions() {
                 "add an employee",
                 "update an employee role",
                 "Update employee managers",
-                "View employees by manager",
+                "View employees by manager",//------this is not working
                 "View employees by department",
-                "Delete departments, roles, and employees",
-                "View the total utilized budget of a department",
+                "Delete departments, roles, and employees",//-------this not working
+                "View the total utilized budget of a department",//-------this is not working
                 "Exit",
             ],
         })
         .then((answer) => {
             console.log(answer);
             if (answer.action == 'View all departments'){
-              const sql = `SELECT * FROM department`;
+              const sql = `SELECT id as \`Department ID\`, name as \`Department Name\` FROM department order by id` ;
               connection.query(sql, (err, res)=> {
                 if (err) throw err; 
-                else console.log(res);
+                else console.table(res);
                 questions();
               })
             }
@@ -65,7 +82,7 @@ function questions() {
               const sql = `SELECT role.name AS \`Job Title\`, role.id AS \`Role ID\`, department.name AS Department, role.salary AS Salary  FROM role join department on role.department_id = department.id`;
               connection.query(sql, (err, res)=> {
                 if (err) throw err; 
-                else console.log(res);
+                else console.table(res);
                 questions();
               })
             } 
@@ -74,7 +91,7 @@ function questions() {
               const sql = `SELECT employee.id AS \`Employee ID\`, employee.first_name AS \`First Name\`, employee.last_name AS \`Last Name\`, role.name AS \`Job Title\`, department.name AS \`Department\`, role.salary AS SALARY,  e2.first_name AS MANAGER FROM employee LEFT JOIN role ON employee.role_id = role.id LEFT JOIN department ON role.department_id = department.id LEFT JOIN employee AS e2 ON employee.manager_id = e2.id`;
               connection.query(sql, (err, res)=> {
                 if (err) throw err; 
-                else console.log(res);
+                else console.table(res);
                 questions();
               })
             } 
@@ -124,8 +141,8 @@ function questions() {
                 viewEmployeeByDepartment();
             }
 
-            if (answer.action == 'View employees by department'){
-                viewEmployeeByDepartment();
+            if (answer.action == 'Delete departments, roles, and employees'){
+                deleteRow();
             }
 
       });
@@ -423,7 +440,7 @@ function  viewEmployeeByManager() {
             console.log(`\n${managerName}:`);
             const employees = employeesByManager[managerName];
             employees.forEach((employee) => {
-                console.log(
+                console.table(
                     `  ${employee.first_name} ${employee.last_name} | ${employee.title} | ${employee.department_name}`
                 );
             });
@@ -446,5 +463,122 @@ function viewEmployeeByDepartment() {
         console.table(res);
         // restart the application
         questions();
+    });
+}
+
+
+// Function to DELETE Departments Roles Employees
+function deleteRow() {
+    inquirer
+        .prompt({
+            type: "list",
+            name: "data",
+            message: "What would you like to delete?",
+            choices: ["Employee", "Role", "Department"],
+        })
+        .then((answer) => {
+            if (answer.data = "Employee")   {
+                deleteEmployee();
+            }
+            if (answer.data = "Role") {
+                deleteRole();
+            }
+            if (answer.data = "Department") {
+                deleteDepartment();
+            }
+        });
+}
+
+// Function to DELETE Employees
+function deleteEmployee() {
+    const query = "SELECT * FROM employee";
+    connection.query(query, (err, res) => {
+        if (err) throw err;
+        const employeeList = res.map((employee) => ({
+            name: `${employee.first_name} ${employee.last_name}`,
+            value: employee.id,
+        }));
+        inquirer
+            .prompt({
+                type: "list",
+                name: "id",
+                message: "Select the employee you want to delete:",
+                choices: employeeList,
+            })
+            .then((answer) => {
+                const query = "DELETE FROM employee WHERE id = ?";
+                connection.query(query, [answer.id], (err, res) => {
+                    if (err) throw err;
+                    console.log(
+                        `Deleted employee with ID ${answer.id} from the database!`
+                        
+                    );
+                    // restart the application
+                    questions();
+                });
+            });
+    });
+}
+
+
+// Function to DELETE role
+function deleteRole() {
+    const query = "SELECT * FROM role";
+    connection.query(query, (err, res) => {
+        if (err) throw err;
+        const roleList = res.map((role) => ({
+            name: `${role.name}`,
+            value: role.id,
+        }));
+        inquirer
+            .prompt({
+                type: "list",
+                name: "id",
+                message: "Select the role you want to delete:",
+                choices: roleList,
+            })
+            .then((answer) => {
+                const query = "DELETE FROM role WHERE id = ?";
+                connection.query(query, [answer.id], (err, res) => {
+                    if (err) throw err;
+                    console.log(
+                        `Deleted role with ID ${answer.id} from the database!`
+                        
+                    );
+                    // restart the application
+                    questions();
+                });
+            });
+    });
+}
+
+// Function to DELETE department
+function deleteDepartment() {
+    const query = "SELECT * FROM department";
+    connection.query(query, (err, res) => {
+        if (err) throw err;
+        const departmetList = res.map((department) => ({
+            name: `${department.name}`,
+            value: department.id,
+        }));
+        inquirer
+            .prompt({
+                type: "list",
+                name: "id",
+                message: "Select the department you want to delete:",
+                choices: departmetList,
+            })
+            .then((answer) => {
+                const query = "DELETE FROM department WHERE id = ?";
+                connection.query(query, [answer.id], (err, res) => {
+                    if (err) throw err;
+                    console.log(
+                        `Deleted department with ID ${answer.id} from the database!`
+                        
+                    );
+                    // restart the application
+                    questions();
+                });
+            });
     });
 }
