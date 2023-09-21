@@ -31,18 +31,18 @@ const connection = mysql.createConnection(
   })
 // Adding style
   cfonts.say('Employee Tracker', {
-	font: 'simple',              // define the font face
-	align: 'left',              // define text alignment
-	colors: ['green'],         // define all colors
-	background: 'transparent',  // define the background color, you can also use `backgroundColor` here as key
-	letterSpacing: 1,           // define letter spacing
-	lineHeight: 1,              // define the line height
-	space: true,                // define if the output text should have empty lines on top and on the bottom
-	maxLength: '0',             // define how many character can be on one line
-	gradient: false,            // define your two gradient colors
-	independentGradient: false, // define if you want to recalculate the gradient for each new line
-	transitionGradient: false,  // define if this is a transition between colors directly
-	env: 'node'                 // define the environment cfonts is being executed in
+	font: 'simple',              
+	align: 'left',              
+	colors: ['green'],         
+	background: 'transparent',  
+	letterSpacing: 1,           
+	lineHeight: 1,              
+	space: true,                
+	maxLength: '0',             
+	gradient: false,            
+	independentGradient: false, 
+	transitionGradient: false,  
+	env: 'node'                
 });
 
 
@@ -61,14 +61,15 @@ function questions() {
                 "add an employee",
                 "update an employee role",
                 "Update employee managers",
-                "View employees by manager",//------this is not working
+                "View employees by manager",
                 "View employees by department",
-                "Delete departments, roles, and employees",//-------this not working
-                "View the total utilized budget of a department",//-------this is not working
+                "Delete departments, roles, and employees",
+                "View the total utilized budget of a department",
                 "Exit",
             ],
         })
         .then((answer) => {
+            //adding conditions and function calls as per selection
             console.log(answer);
             if (answer.action == 'View all departments'){
               const sql = `SELECT id as \`Department ID\`, name as \`Department Name\` FROM department order by id` ;
@@ -109,7 +110,7 @@ function questions() {
                       connection.query(sql, (err, res) => {
                           if (err) throw err;
                           console.log(`Added department ${answer.name} to the database!`);
-                          // restart the application
+                          // ask questions again
                           questions();
                           console.log(answer.name);
                       });
@@ -145,9 +146,14 @@ function questions() {
                 deleteRow();
             }
 
+            if (answer.action == 'View the total utilized budget of a department'){
+                viewTotalUtilizedBudgetOfDepartment();
+            }
+
       });
 }
 
+//function to add role
 function addRole() {
   const query = "SELECT * FROM department";
   connection.query(query, (err, res) => {
@@ -190,7 +196,7 @@ function addRole() {
                       console.log(
                           `Added role ${answers.title} with salary ${answers.salary} to the ${answers.department} department in the database!`
                       );
-                      // restart the application
+                      // ask questions again
                       questions();
                   }
               );
@@ -200,7 +206,7 @@ function addRole() {
 
 // Function to add an employee
 function addEmployee() {
-  // Retrieve list of roles from the database
+ 
   connection.query("SELECT id, name FROM role", (error, results) => {
       if (error) {
           console.error(error);
@@ -212,7 +218,7 @@ function addEmployee() {
           value: id,
       }));
 
-      // Retrieve list of employees from the database to use as managers
+      
       connection.query(
           'SELECT id, CONCAT(first_name, " ", last_name) AS name FROM employee',
           (error, results) => {
@@ -256,7 +262,7 @@ function addEmployee() {
                       },
                   ])
                   .then((answers) => {
-                      // Insert the employee into the database
+                      // Insert the employee 
                       const sql =
                           "INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES (?, ?, ?, ?)";
                       const values = [
@@ -330,7 +336,7 @@ function updateEmployeeRole() {
                           console.log(
                               `Updated ${employee.first_name} ${employee.last_name}'s role to ${role.name} in the database!`
                           );
-                          // restart the application
+                          // ask questions again
                           questions();
                       }
                   );
@@ -339,7 +345,7 @@ function updateEmployeeRole() {
   });
 }
 
-
+// function to update manager
 function updateEmployeeManager() {
    
     const queryEmployees = "SELECT * FROM employee";
@@ -391,7 +397,7 @@ function updateEmployeeManager() {
                             console.log(
                                 `Added manager ${manager.first_name} ${manager.last_name} to employee ${employee.first_name} ${employee.last_name}`
                             );
-                            // restart the application
+                            // ask question again
                             questions();
                         }
                     );
@@ -412,8 +418,8 @@ function  viewEmployeeByManager() {
       FROM 
         employee e
         LEFT JOIN employee m ON e.manager_id = m.id
-        INNER JOIN role r ON e.role_id = m.id
-        INNER JOIN department d ON r.department_id = d.id
+        INNER JOIN role r ON e.role_id = r.id
+        
       ORDER BY 
         manager_name, 
         e.last_name, 
@@ -421,11 +427,13 @@ function  viewEmployeeByManager() {
     `;
 
     connection.query(query, (err, res) => {
+        console.log(res);
         if (err) throw err;
 
         // group employees by manager
         const employeesByManager = res.reduce((acc, cur) => {
             const managerName = cur.manager_name;
+            console.log(managerName)
             if (acc[managerName]) {
                 acc[managerName].push(cur);
             } else {
@@ -433,20 +441,24 @@ function  viewEmployeeByManager() {
             }
             return acc;
         }, {});
-
+         console.log(employeesByManager);
         // display employees by manager
         console.log("Employees by manager:");
         for (const managerName in employeesByManager) {
-            console.log(`\n${managerName}:`);
+            //console.log(typeof managerName)
+            //const test = managerName === "null" ? managerName : "No Manager"
+            // displayManager = managerName??`No Manager`
+            //console.log(displayManager, test);
+            console.log(`\n${managerName === "null" ? `No Manager`: managerName}:`);
             const employees = employeesByManager[managerName];
             employees.forEach((employee) => {
                 console.table(
-                    `  ${employee.first_name} ${employee.last_name} | ${employee.title} | ${employee.department_name}`
+                    `  ${employee.first_name} ${employee.last_name}`
                 );
             });
         }
 
-        // restart the application
+        // ask question again
         questions();
     });
 }
@@ -461,13 +473,13 @@ function viewEmployeeByDepartment() {
         if (err) throw err;
         console.log("\nEmployees by department:");
         console.table(res);
-        // restart the application
+        // ask question again
         questions();
     });
 }
 
 
-// Function to DELETE Departments Roles Employees
+// Function to delete Department, Role, Employee
 function deleteRow() {
     inquirer
         .prompt({
@@ -477,19 +489,19 @@ function deleteRow() {
             choices: ["Employee", "Role", "Department"],
         })
         .then((answer) => {
-            if (answer.data = "Employee")   {
+            if (answer.data === "Employee")   {
                 deleteEmployee();
             }
-            if (answer.data = "Role") {
+            if (answer.data === "Role") {
                 deleteRole();
             }
-            if (answer.data = "Department") {
+            if (answer.data === "Department") {
                 deleteDepartment();
             }
         });
 }
 
-// Function to DELETE Employees
+// Function to delete Employees
 function deleteEmployee() {
     const query = "SELECT * FROM employee";
     connection.query(query, (err, res) => {
@@ -513,7 +525,7 @@ function deleteEmployee() {
                         `Deleted employee with ID ${answer.id} from the database!`
                         
                     );
-                    // restart the application
+                    // ask question again
                     questions();
                 });
             });
@@ -521,7 +533,7 @@ function deleteEmployee() {
 }
 
 
-// Function to DELETE role
+// Function to delete role
 function deleteRole() {
     const query = "SELECT * FROM role";
     connection.query(query, (err, res) => {
@@ -545,14 +557,14 @@ function deleteRole() {
                         `Deleted role with ID ${answer.id} from the database!`
                         
                     );
-                    // restart the application
+                    // ask questions again
                     questions();
                 });
             });
     });
 }
 
-// Function to DELETE department
+// Function to delete department
 function deleteDepartment() {
     const query = "SELECT * FROM department";
     connection.query(query, (err, res) => {
@@ -576,9 +588,61 @@ function deleteDepartment() {
                         `Deleted department with ID ${answer.id} from the database!`
                         
                     );
-                    // restart the application
+                    // ask questions again
                     questions();
                 });
             });
     });
 }
+
+// Function to view Total Utilized Budget of Department
+function viewTotalUtilizedBudgetOfDepartment() {
+    console.log("inside the function");
+    const query = "SELECT * FROM department";
+    connection.query(query, (err, res) => {
+        if (err) throw err;
+        const departmentChoices = res.map((department) => ({
+            name: department.name,
+            value: department.id,
+        }));
+
+        // prompt the user to select a department
+        inquirer
+            .prompt({
+                type: "list",
+                name: "departmentId",
+                message:
+                    "Which department do you want to calculate the total salary for?",
+                choices: departmentChoices,
+            })
+            .then((answer) => {
+                // calculate the total salary for the selected department
+                const query =
+                    `SELECT 
+                    department.name AS \`Department Name\`,
+                    SUM(role.salary) AS \`Total_Salary\`
+                  FROM 
+                    department
+                    INNER JOIN role ON department.id = role.department_id
+                    INNER JOIN employee ON role.id = employee.role_id
+                  WHERE 
+                    department.id = ?
+                  GROUP BY 
+                    department.id;`;
+                connection.query(query, [answer.departmentId], (err, res) => {
+                    if (err) throw err;
+                    const totalSalary = res[0].Total_Salary;
+                    console.log(
+                        `The total salary for employees in this department is $${totalSalary}`
+                    );
+                    // ask questions again
+                    questions();
+                });
+            });
+    });
+}
+
+// close the connection when the application exits
+process.on("exit", () => {
+    connection.end();
+});
