@@ -31,7 +31,7 @@
 
   to manage company's employee tracker
   ## Contribution Details: 
-     Neha Sabannavar, Rutgers TA, Xpert Learning Assistant, AskBCS, SQL Join Tutorials (https://www.youtube.com/watch?v=bLL5NbBEg2I, w3schools), https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Nullish_coalescing
+     Neha Sabannavar, Rutgers TA, Xpert Learning Assistant, AskBCS, SQL Join Tutorials (https://www.youtube.com/watch?v=bLL5NbBEg2I, w3schools), https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Nullish_coalescing, https://www.npmjs.com/package/cfonts
 
   ## Test Instructions: 
    Command to run the script : node index.js
